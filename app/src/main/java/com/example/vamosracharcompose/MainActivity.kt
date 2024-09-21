@@ -18,7 +18,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -52,10 +57,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Rachador (){
+    var text by remember { mutableStateOf("")}
+    var text2 by remember { mutableStateOf("")}
+    var Result by remember { mutableStateOf("")}
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
 
@@ -64,7 +74,7 @@ fun Rachador (){
             contentDescription = "Logo Rachador",
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(125.dp)
                 .padding(top = 26.dp),
             contentScale = ContentScale.Fit
         )
@@ -72,6 +82,42 @@ fun Rachador (){
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = "RACHADOR",
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(16.dp),
+            textAlign = TextAlign.Center
+
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = text,
+            onValueChange = {newText -> text = newText},
+            label = { Text(text = "Valor total")},
+
+
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = text2,
+            onValueChange = {newText -> text2 = newText},
+            label = { Text(text = "Quantidade de Pessoas")},
+
+
+            )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Result = text/text2
+        Text(text = "R$0,00",
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
