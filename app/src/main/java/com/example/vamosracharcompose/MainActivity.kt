@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 fun Rachador (){
     var text by remember { mutableStateOf("")}
     var text2 by remember { mutableStateOf("")}
-    var Result by remember { mutableStateOf("")}
+    var Result = {text.toInt()/text2.toInt()}
 
     Column(
         modifier = Modifier
@@ -116,11 +116,11 @@ fun Rachador (){
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        Result = text/text2
         Text(text = "R$0,00",
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+
 
             ),
             modifier = Modifier
