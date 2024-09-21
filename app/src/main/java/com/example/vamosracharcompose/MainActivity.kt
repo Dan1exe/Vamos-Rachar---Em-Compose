@@ -1,5 +1,6 @@
 package com.example.vamosracharcompose
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,6 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,10 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,10 +67,12 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun Rachador (){
-    var text by remember { mutableStateOf("")}
-    var text2 by remember { mutableStateOf("")}
-    var Result = {text.toInt()/text2.toInt()}
+fun Rachador () {
+    var text by remember { mutableStateOf("") }
+    var text2 by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf("R$0,00") }
+    val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -81,7 +94,8 @@ fun Rachador (){
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(text = "RACHADOR",
+        Text(
+            text = "RACHADOR",
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -98,31 +112,56 @@ fun Rachador (){
 
         TextField(
             value = text,
-            onValueChange = {newText -> text = newText},
-            label = { Text(text = "Valor total")},
+            onValueChange = {
+                text = it
+                calculateResult(text, text2)?.let { res ->
+                    result = "R$${"%.2f".format(res)}"
+                } ?: run {
+                    result = "Erro"
+                }
+            },
+            label = { Text("Valor total") },
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    focusManager.moveFocus(FocusDirection.Down)
 
-
+                }
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
             value = text2,
-            onValueChange = {newText -> text2 = newText},
-            label = { Text(text = "Quantidade de Pessoas")},
+            onValueChange = {
+                text2 = it
+                calculateResult(text, text2)?.let { res ->
+                    result = "R$${"%.2f".format(res)}"
+                } ?: run {
+                    result = "Erro"
+                }
 
-
+            },
+            label = { Text("Quantidade de Pessoas") },
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus()
+                }
             )
+        )
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        Text(text = "R$0,00",
+        Text(
+            text = result,
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
 
 
-            ),
+                ),
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
@@ -130,10 +169,40 @@ fun Rachador (){
             textAlign = TextAlign.Center
 
         )
+        Spacer(modifier = Modifier.height(30.dp))
 
+        FloatingActionButton(
+            onClick = { shareResult(context, result) },
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(70.dp)
+
+        ) {
+            Icon(Icons.Filled.Share, contentDescription = "Compartilhar resultado")
+
+        }
     }
-
 }
+
+        fun calculateResult(text: String, text2: String): Double? {
+            val n1 = text.toDoubleOrNull()
+            val n2 = text2.toDoubleOrNull()
+            return if (n1 != null && n2 != null && n2 != 0.0) {
+                n1 / n2
+            } else {
+                null
+            }
+        }
+
+        fun shareResult(context: android.content.Context, result: String) {
+            val shareIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, "Cada um deve pagar: $result")
+                type = "text/plain"
+            }
+            context.startActivity(Intent.createChooser(shareIntent, null))
+        }
+
 
 @Preview(showBackground = true)
 
