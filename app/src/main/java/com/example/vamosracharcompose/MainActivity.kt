@@ -6,19 +6,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,7 +38,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +45,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.vamosracharcompose.ui.theme.VamosRacharComposeTheme
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.platform.LocalConfiguration
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,20 +66,34 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+fun Rachador() {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    if (isLandscape) {
+        RachadorLandscape()
+    } else {
+        RachadorPortrait()
+    }
+}
 
 
 @Composable
-fun Rachador () {
+fun RachadorPortrait() {
     var text by remember { mutableStateOf("") }
     var text2 by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("R$0,00") }
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
+
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 16.dp),
+            .padding(top = 16.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -143,7 +159,7 @@ fun Rachador () {
                 }
 
             },
-            label = { Text("Quantidade de Pessoas") },
+            label = { Text("Número de Pessoas") },
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
                 onDone = {
@@ -171,18 +187,158 @@ fun Rachador () {
         )
         Spacer(modifier = Modifier.height(30.dp))
 
-        FloatingActionButton(
-            onClick = { shareResult(context, result) },
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(70.dp)
+        Row {
 
-        ) {
-            Icon(Icons.Filled.Share, contentDescription = "Compartilhar resultado")
 
+            FloatingActionButton(
+                onClick = { shareResult(context, result) },
+                modifier = Modifier
+                    .padding(70.dp)
+
+            ) {
+                Icon(Icons.Filled.Share, contentDescription = "Compartilhar resultado")
+
+            }
+            FloatingActionButton(
+                onClick = {  },
+                modifier = Modifier
+                    .padding(70.dp)
+
+            ) {
+                Icon(Icons.Filled.PlayArrow, contentDescription = "Falar resultado")
+
+            }
         }
     }
 }
+@Composable
+fun RachadorLandscape() {
+    var text by remember { mutableStateOf("") }
+    var text2 by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf("R$0,00") }
+    val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 16.dp)
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            // Coloque o conteúdo da coluna em modo paisagem aqui
+
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "Logo Rachador",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .padding(top = 10.dp),
+                contentScale = ContentScale.Fit
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "RACHADOR",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(bottom = 25.dp),
+                textAlign = TextAlign.Center
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center
+            ) {
+
+                TextField(
+                    value = text,
+                    onValueChange = {
+                        text = it
+                        calculateResult(text, text2)?.let { res ->
+                            result = "R$${"%.2f".format(res)}"
+                        } ?: run {
+                            result = "Erro"
+                        }
+                    },
+                    label = { Text("Valor total") },
+                    modifier = Modifier.height(30.dp).width(200.dp),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            focusManager.moveFocus(FocusDirection.Right)
+
+                        }
+                    )
+                )
+                Spacer(modifier = Modifier.width(50.dp))
+                TextField(
+                    value = text2,
+                    onValueChange = {
+                        text2 = it
+                        calculateResult(text, text2)?.let { res ->
+                            result = "R$${"%.2f".format(res)}"
+                        } ?: run {
+                            result = "Erro"
+                        }
+
+                    },
+                    label = { Text("Número de Pessoas") },
+                    modifier = Modifier.height(30.dp).width(200.dp),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                        }
+                    )
+                )
+            }
+
+
+            Text(
+                text = result,
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(top = 40.dp),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row {
+                FloatingActionButton(
+                    onClick = { shareResult(context, result) },
+                    modifier = Modifier
+                        .padding(0.dp)
+                ) {
+                    Icon(Icons.Filled.Share, contentDescription = "Compartilhar resultado")
+                }
+                Spacer(modifier = Modifier.width(300.dp))
+                FloatingActionButton(
+                    onClick = { /* Implementar TTS aqui */ },
+                    modifier = Modifier.padding(0.dp)
+                ) {
+                    Icon(Icons.Filled.PlayArrow, contentDescription = "Falar resultado")
+                }
+            }
+        }
+    }
+}
+
 
         fun calculateResult(text: String, text2: String): Double? {
             val n1 = text.toDoubleOrNull()
@@ -204,7 +360,12 @@ fun Rachador () {
         }
 
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    widthDp = 720, // Largura simulada em dp para landscape
+    heightDp = 360, // Altura simulada em dp para landscape
+    name = "Landscape Preview"
+)
 
 @Composable
 fun RachadorRun(){
