@@ -2,6 +2,7 @@ package com.example.vamosracharcompose
 
 import android.content.Intent
 import android.os.Bundle
+import android.speech.tts.TextToSpeech
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -15,8 +16,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
@@ -35,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -44,16 +48,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.vamosracharcompose.ui.theme.VamosRacharComposeTheme
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.ui.platform.LocalConfiguration
+import java.util.Locale
+
 
 class MainActivity : ComponentActivity() {
+    var tts: TextToSpeech? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        tts = TextToSpeech(this) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                val result = tts?.setLanguage(Locale("pt", "BR"))
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    println("Idioma não suportado ou faltando dados")
+                } else {
+                    println("TextToSpeech inicializado com sucesso!")
+                }
+            } else {
+                println("Falha na inicialização do TextToSpeech!")
+            }
+        }
         setContent {
-            VamosRacharComposeTheme {
+            MyAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -87,6 +103,8 @@ fun RachadorPortrait() {
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val primaryColor = MaterialTheme.colorScheme.primary
 
 
     Column(
@@ -193,16 +211,32 @@ fun RachadorPortrait() {
             FloatingActionButton(
                 onClick = { shareResult(context, result) },
                 modifier = Modifier
-                    .padding(70.dp)
+                    .padding(70.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
 
             ) {
                 Icon(Icons.Filled.Share, contentDescription = "Compartilhar resultado")
 
             }
             FloatingActionButton(
-                onClick = {  },
+                onClick = {
+                    val mainActivity = context as? MainActivity
+                    mainActivity?.tts?.let { tts ->
+                        if (tts.isLanguageAvailable(Locale("pt", "BR")) >= TextToSpeech.LANG_AVAILABLE) {
+                            if (result.isNotEmpty()) {
+                                println("Falando o resultado: $result")
+                                tts.speak(result, TextToSpeech.QUEUE_FLUSH, null, null)
+                            } else {
+                                println("Resultado vazio ou não definido")
+                            }
+                        } else {
+                            println("Língua não disponível ou TTS não inicializado corretamente")
+                        }
+                    } ?: println("TextToSpeech não está inicializado")
+                },
                 modifier = Modifier
-                    .padding(70.dp)
+                    .padding(70.dp),
+                    containerColor = MaterialTheme.colorScheme.primary,
 
             ) {
                 Icon(Icons.Filled.PlayArrow, contentDescription = "Falar resultado")
@@ -218,6 +252,8 @@ fun RachadorLandscape() {
     var result by remember { mutableStateOf("R$0,00") }
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     Column(
         modifier = Modifier
@@ -271,7 +307,9 @@ fun RachadorLandscape() {
                         }
                     },
                     label = { Text("Valor total") },
-                    modifier = Modifier.height(30.dp).width(200.dp),
+                    modifier = Modifier
+                        .height(30.dp)
+                        .width(200.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(
                         onNext = {
@@ -293,7 +331,9 @@ fun RachadorLandscape() {
 
                     },
                     label = { Text("Número de Pessoas") },
-                    modifier = Modifier.height(30.dp).width(200.dp),
+                    modifier = Modifier
+                        .height(30.dp)
+                        .width(200.dp),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
                         onDone = {
@@ -329,8 +369,22 @@ fun RachadorLandscape() {
                 }
                 Spacer(modifier = Modifier.width(300.dp))
                 FloatingActionButton(
-                    onClick = { /* Implementar TTS aqui */ },
-                    modifier = Modifier.padding(0.dp)
+                    onClick = {
+                        val mainActivity = context as? MainActivity
+                        mainActivity?.tts?.let { tts ->
+                            if (tts.isLanguageAvailable(Locale("pt", "BR")) >= TextToSpeech.LANG_AVAILABLE) {
+                                if (result.isNotEmpty()) {
+                                    println("Falando o resultado: $result")
+                                    tts.speak(result, TextToSpeech.QUEUE_FLUSH, null, null)
+                                } else {
+                                    println("Resultado vazio ou não definido")
+                                }
+                            } else {
+                                println("Língua não disponível ou TTS não inicializado corretamente")
+                            }
+                        } ?: println("TextToSpeech não está inicializado")
+                    },
+                    modifier = Modifier.padding(0.dp),
                 ) {
                     Icon(Icons.Filled.PlayArrow, contentDescription = "Falar resultado")
                 }
@@ -362,9 +416,9 @@ fun RachadorLandscape() {
 
 @Preview(
     showBackground = true,
-    widthDp = 720, // Largura simulada em dp para landscape
+    /*widthDp = 720, // Largura simulada em dp para landscape
     heightDp = 360, // Altura simulada em dp para landscape
-    name = "Landscape Preview"
+    name = "Landscape Preview"*/
 )
 
 @Composable
